@@ -114,3 +114,38 @@
             q
             (- count 1)))))
   (internal-fast-fib 1 0 0 1 n))
+
+; Exercise 1.21
+(define (smallest-divisor n)
+  (define (internal-smallest-divisor d)
+    (cond ((> (square d) n) n) ; the divisor of n must be less than or equal to square-root of n
+          ((divides? n d) d)
+          (else (internal-smallest-divisor (+ d 1)))))
+  (internal-smallest-divisor 2))
+
+(define (divides? n d) (= (remainder n d) 0))
+
+; Exercise 1.22
+; l: left bound inclusive, r: right bound inclusive
+(define (search-for-primes l r)
+  (define (internal-search-for-primes l r)
+    (if (<= l r) (timed-prime-test l))
+    (if (< l r) (internal-search-for-primes (+ l 2) r)))
+  ; make sure that the first number tested is an odd number
+  (internal-search-for-primes (if (even? l) (+ l 1) l) r))
+
+(define (timed-prime-test n)
+  (newline)
+  (display n)
+  (start-prime-test n (runtime)))
+
+(define (start-prime-test n start-time)
+  (if (prime? n) (report-prime (- (runtime) start-time))))
+
+(define (prime? n)
+  (= (smallest-divisor n) n))
+
+(define (report-prime elapsed-time)
+  (display " *** ")
+  (display elapsed-time))
+

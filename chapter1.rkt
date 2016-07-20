@@ -149,3 +149,49 @@
   (display " *** ")
   (display elapsed-time))
 
+; Exercise 1.23
+(define (smart-smallest-divisor n)
+  (define (internal-smart-smallest-divisor test-divisor)
+    (cond ((> (square test-divisor) n) n)
+          ((divides? n test-divisor) test-divisor)
+          ; no need to check for multiples of 2 when we know that 2 is not the divisor
+          (else (internal-smart-smallest-divisor (next-divisor test-divisor)))))
+  (internal-smart-smallest-divisor 2))
+
+(define (next-divisor d)
+  (if (= d 2) 3 (+ d 2)))
+
+(define (timed-smart-prime-test n)
+  (newline)
+  (display n)
+  (start-smart-prime-test n (runtime)))
+
+(define (start-smart-prime-test n start-time)
+  (if (smart-prime? n) (report-prime (- (runtime) start-time))))
+
+(define (smart-prime? n)
+  (= (smart-smallest-divisor n) n))
+
+; Exercise 1.24
+(define (timed-fast-prime-test n)
+  (newline)
+  (display n)
+  (start-fast-prime-test n (runtime)))
+
+(define (start-fast-prime-test n start-time)
+  (if (fast-prime? n 50) (report-prime (- (runtime) start-time))))
+
+(define (fast-prime? n times)
+  (cond ((= times 0) true)
+        ((fermat-test? n) (fast-prime? n (- times 1)))
+        (else false)))
+
+(define (fermat-test? n)
+  (define (try-it a n)
+    (= (expmod a n n) a))
+  (try-it (+ 1 (random (- n 1))) n))
+
+(define (expmod base exp m)
+  (cond ((= exp 1) (remainder base m))
+        ((even? exp) (remainder (square (expmod base (/ exp 2) m)) m))
+        (else (remainder (* base (expmod base (- exp 1) m)) m))))

@@ -247,3 +247,60 @@
          (not (= s (square (- m 1))))
          (= (remainder s m) 1)))
   (miller-rabin-test-iter 2 n))
+
+; Exercise 1.29
+(define (simpson-integral f a b n)
+  (define (h)
+    (/ (- b a) n))
+  (define (y k)
+    (f (+ a (* k (h)))))
+  (define (eval a)
+    (cond ((or (= a 0) (= a n)) (y a))
+          ((even? a) (* 2 (y a)))
+          (else (* 4 (y a)))))
+  (* (/ (h) 3) (sum 0 n eval increase)))
+
+(define (integral f a b dx)
+  (define (next a)
+    (+ a dx))
+  (* dx (sum (+ a (/ dx 2)) b f next)))
+
+(define (sum a b eval next)
+  (if (> a b)
+      0
+      (+ (eval a) (sum (next a) b eval next))))
+
+(define (sum-cubes a b)
+  (sum a b cube increase))
+
+(define (cube a)
+  (* a a a))
+
+(define (increase a)
+  (+ a 1))
+
+; Exercise 1.30
+(define (sum-iter a b eval next)
+  (define (internal-sum-iter a accumulator)
+    (if (> a b)
+        accumulator
+        (internal-sum-iter (next a) (+ accumulator (eval a)))))
+    (internal-sum-iter a 0))
+
+; Exercise 1.31
+(define (product a b eval next)
+  (if (> a b)
+      1
+      (* (eval a) (product (next a) b eval next))))
+
+(define (factorial n)
+  (product 1 n identity increase))
+
+(define (identity n) n)
+
+(define (approximate-pi n)
+  (define (numerator m)
+    (* 2 (+ 1 (floor (/ m 2)))))
+  (define (denominator m)
+    (+ (* 2 (ceiling (/ m 2))) 1))
+  (* 4 (/ (product 1 n numerator increase) (product 1 n denominator increase))))

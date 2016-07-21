@@ -9,7 +9,7 @@
         ((and (>= x y) (>= z y)) (+ (* x x) (* z z)))
         ((and (>= x z) (>= y z)) (+ (* x x) (* y y)))))
 
-; Exercies 1.4
+; Exercise 1.4
 (define (a-plus-abs-b a b)
   ((if (> b 0) + -) a b))
 
@@ -63,7 +63,7 @@
   (cond ((or (= v 1) (= v 2)) 1)
         ((or (= h 1) (>= h v)) 1)
         (else (+ (pascal-triangle (- v 1) (- h 1)) (pascal-triangle (- v 1) h)))))
-  
+
 ; Exercise 1.16
 (define (fast-expt-iter b n)
   ; loop invariant: a*(b^n)
@@ -192,6 +192,58 @@
   (try-it (+ 1 (random (- n 1))) n))
 
 (define (expmod base exp m)
-  (cond ((= exp 1) (remainder base m))
+  (cond ((= exp 0) 1)
         ((even? exp) (remainder (square (expmod base (/ exp 2) m)) m))
         (else (remainder (* base (expmod base (- exp 1) m)) m))))
+
+; Exercise 1.25
+(define (expmod-2 base exp m)
+  ; this computes the exponentation before the modulo. Because the exponentation
+  ; involves very large numbers, this takes more time than the original expmod,
+  ; which always keeps the modulo operands small.
+  (remainder (fast-expt-iter base exp) m))
+
+; Exercise 1.26
+(define (expmod-3 base exp m)
+  (cond ((= exp 0) 1)
+        ; because of the two recursive calls and the applicative order, the number
+        ; of steps is equal to the number of nodes in the computation tree.
+        ; e.g. exp = 16, the tree is like 16 -> 8 8 -> 4 4 4 4 -> ....
+        ; So instead of producing a linear-recursive process, this algorithm
+        ; produces a tree-recursive one.
+        ((even? exp) (remainder (* (expmod base (/ exp 2) m) (expmod base (/ exp 2) m)) m))
+        (else (remainder (* base (expmod base (- exp 1) m)) m))))
+
+; Exercise 1.27
+(define (full-fermat-test? n)
+  (define (try-it a n)
+    (= (expmod a n n) a))
+  (define (fermat-test-iter? a n)
+    (cond ((>= a n) true)
+          ((try-it a n) (fermat-test-iter? (+ a 1) n))
+          (else false)))
+  (fermat-test-iter? 2 n))
+
+; Exercise 1.28
+(define (miller-rabin-test? n)
+  (define (miller-rabin-test-iter a n)
+    (cond ((>= a n) true)
+          ((try-it a n) (miller-rabin-test-iter (+ a 1) n))
+          (else false)))
+  (define (try-it a n)
+    ; in case of non-trivial square, this will evaluates to false anyway
+    (= (expmod a (- n 1) n) 1))
+  (define (expmod base exp m)
+    (cond ((= exp 0) 1)
+          ((even? exp) (remainder-square (square (expmod base (/ exp 2) m)) m))
+          (else (remainder (* base (expmod base (- exp 1) m)) m))))
+  (define (remainder-square s m)
+    ; return 0 as the special signal
+    (if (non-trivial-square? s m) 0 (remainder s m)))
+  (define (non-trivial-square? s m)
+    (and (not (= s 1))
+         ; note that s is the square of the number under consideration. that's
+         ; why we compare it to the square of (m - 1)
+         (not (= s (square (- m 1))))
+         (= (remainder s m) 1)))
+  (miller-rabin-test-iter 2 n))

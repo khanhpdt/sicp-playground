@@ -143,7 +143,7 @@
   (if (prime? n) (report-prime (- (runtime) start-time))))
 
 (define (prime? n)
-  (= (smallest-divisor n) n))
+  (if (= n 1) false (= (smallest-divisor n) n)))
 
 (define (report-prime elapsed-time)
   (display " *** ")
@@ -304,3 +304,53 @@
   (define (denominator m)
     (+ (* 2 (ceiling (/ m 2))) 1))
   (* 4 (/ (product 1 n numerator increase) (product 1 n denominator increase))))
+
+(define (product-iter a b eval next)
+  (define (internal-product-iter a result)
+    (if (> a b)
+        result
+        (internal-product-iter (next a) (* (eval a) result))))
+  (internal-product-iter a 1))
+
+; Exercise 1.32
+(define (accumulate combiner base-value a b eval next)
+  (if (> a b)
+      base-value
+      (combiner (eval a) (accumulate combiner base-value (next a) b eval next))))
+
+(define (accumulate-sum a b eval next)
+  (accumulate sum-two 0 a b eval next))
+
+(define (sum-two a b) (+ a b))
+
+(define (accumulate-product a b eval next)
+  (accumulate product-two 1 a b eval next))
+
+(define (product-two a b) (* a b))
+
+(define (accumulate-iter combiner base-value a b eval next)
+  (define (internal-accumulate-iter a result)
+    (if (> a b)
+        result
+        (internal-accumulate-iter (next a) (combiner result (eval a)))))
+  (internal-accumulate-iter a base-value))
+
+(define (accumulate-sum-iter a b eval next)
+  (accumulate-iter sum-two 0 a b eval next))
+
+; Exercise 1.33
+(define (filtered-accumulate combiner base-value a b eval next predicate?)
+  (cond ((> a b) base-value)
+        ((predicate? a) (combiner (eval a) (filtered-accumulate combiner base-value (next a) b eval next predicate?)))
+        (else (filtered-accumulate combiner base-value (next a) b eval next predicate?))))
+
+(define (sum-primes a b)
+  (filtered-accumulate sum-two 0 a b identity increase prime?))
+
+(define (sum-primes-relative-to n)
+  (define (relative-prime? a)
+    (= (gcd a n) 1))
+  (filtered-accumulate product-two 1 1 n identity increase relative-prime?))
+
+(define (gcd a b)
+  (if (divides? a b) b (gcd b (remainder a b))))

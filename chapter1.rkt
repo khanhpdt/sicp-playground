@@ -409,3 +409,19 @@
 
 (define (golden-ratio)
   (fixed-point-average-damping (lambda (x) (+ 1 (/ 1 x))) 1.0))
+
+; Exercise 1.38
+; approximate the base of the natural algorithm
+(define (approximate-e)
+  (define (n i) 1.0)
+  (define (d i) 
+    (cond ((= i 2) 2)
+          ((divides? (+ i 1) 3) (* 2 (/ (+ i 1) 3)))
+          (else 1)))
+  (+ 2 (cont-frac-iter n d 100)))
+
+; Exercise 1.39
+(define (tan-cf x k)
+  (define (n i) (if (= i 1) x (- (square x))))
+  (define (d i) (- (* 2 i) 1))
+  (cont-frac-iter n d k))

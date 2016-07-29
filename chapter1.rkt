@@ -355,5 +355,30 @@
 ; (f f) -> (f 2) -> (2 2) -> error: not a procedure
 
 ; Exercise 1.35
-(define (fixed-point f x)
+(define (fixed-point f guess)
+  (define tolerance 0.00001)
+  (define (close-enough? x y)
+    (< (abs (- x y)) tolerance))
+  (let ((next-guess (f guess)))
+    (if (close-enough? next-guess guess) 
+        guess 
+        (fixed-point f next-guess))))
   
+; Exercise 1.36
+(define (fixed-point-print f guess)
+  (define tolerance 0.00001)
+  (define (close-enough? x y)
+    (< (abs (- x y)) tolerance))
+
+  (print guess)
+
+  (let ((next-guess (f guess)))
+    (if (close-enough? next-guess guess) 
+        guess 
+        (fixed-point-print f next-guess))))
+
+(define (print s)
+  (display s)
+  (newline))
+
+; TODO fixed-point with average damping

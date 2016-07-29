@@ -14,35 +14,32 @@
   ((if (> b 0) + -) a b))
 
 ; Exercise 1.7
-(define (sqrt-iter new-guess old-guess x)
+(define (sqrt-iter current-guess old-guess x)
+  (define (close-enough? current-guess old-guess)
+    (< (abs (- current-guess old-guess)) (/ current-guess 1000)))
+  (define (improve guess x)
+    (average guess (/ x guess)))
   ; if the two consecutive guesses are really close, we say that
   ; they approach the correct solution
-  (if (close-enough? new-guess old-guess)
-      new-guess
-      (sqrt-iter (improve new-guess x) new-guess x)))
+  (if (close-enough? current-guess old-guess)
+      current-guess
+      (sqrt-iter (improve current-guess x) current-guess x)))
 
-(define (close-enough? new-guess old-guess)
-  (< (abs (- new-guess old-guess)) (/ new-guess 1000)))
-
-(define (abs x)
-  (if (< x 0) (- x) x))
+(define (abs x) (if (< x 0) (- x) x))
 
 (define (square x) (* x x))
 
-(define (improve guess x)
-  (average guess (/ x guess)))
-
-(define (average x y)
-  (/ (+ x y) 2))
+(define (average x y) (/ (+ x y) 2))
 
 ; Exercise 1.8
-(define (cube-root new-guess old-guess x)
-  (if (close-enough? new-guess old-guess)
-      new-guess
-      (cube-root (improve-cube-root-guess new-guess x) new-guess x)))
-
-(define (improve-cube-root-guess guess x)
-  (/ (+ (/ x (* guess guess)) (* 2 guess)) 3))
+(define (cube-root current-guess old-guess x)
+  (define (close-enough? current-guess old-guess)
+    (< (abs (- current-guess old-guess)) (/ current-guess 1000)))
+  (define (improve guess x)
+    (/ (+ (/ x (* guess guess)) (* 2 guess)) 3))
+  (if (close-enough? current-guess old-guess)
+      current-guess
+      (cube-root (improve current-guess x) current-guess x)))
 
 ; Exercise 1.11
 (define (f-recursive n)
@@ -151,15 +148,13 @@
 
 ; Exercise 1.23
 (define (smart-smallest-divisor n)
+  (define (next-divisor d) (if (= d 2) 3 (+ d 2)))
   (define (internal-smart-smallest-divisor test-divisor)
     (cond ((> (square test-divisor) n) n)
           ((divides? n test-divisor) test-divisor)
           ; no need to check for multiples of 2 when we know that 2 is not the divisor
           (else (internal-smart-smallest-divisor (next-divisor test-divisor)))))
   (internal-smart-smallest-divisor 2))
-
-(define (next-divisor d)
-  (if (= d 2) 3 (+ d 2)))
 
 (define (timed-smart-prime-test n)
   (newline)
@@ -354,3 +349,11 @@
 
 (define (gcd a b)
   (if (divides? a b) b (gcd b (remainder a b))))
+
+; Exercise 1.34
+(define (f g) (g 2))
+; (f f) -> (f 2) -> (2 2) -> error: not a procedure
+
+; Exercise 1.35
+(define (fixed-point f x)
+  

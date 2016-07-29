@@ -355,30 +355,57 @@
 ; (f f) -> (f 2) -> (2 2) -> error: not a procedure
 
 ; Exercise 1.35
-(define (fixed-point f guess)
-  (define tolerance 0.00001)
-  (define (close-enough? x y)
-    (< (abs (- x y)) tolerance))
+(define tolerance 0.00001)
+
+(define (close-enough? x y)
+  (< (abs (- x y)) tolerance))
+
+(define (fixed-point-excercise-1-35 f guess)
   (let ((next-guess (f guess)))
     (if (close-enough? next-guess guess) 
         guess 
         (fixed-point f next-guess))))
   
 ; Exercise 1.36
-(define (fixed-point-print f guess)
-  (define tolerance 0.00001)
-  (define (close-enough? x y)
-    (< (abs (- x y)) tolerance))
+(define (fixed-point f first-guess)
+  (define (internal-impl guess step-counter)
+    (println (number->string step-counter) ": " (number->string guess))
+    (let ((next-guess (f guess)))
+      (if (close-enough? next-guess guess) 
+          guess 
+          (internal-impl next-guess (+ step-counter 1)))))
+    (internal-impl first-guess 1))
 
-  (print guess)
-
-  (let ((next-guess (f guess)))
-    (if (close-enough? next-guess guess) 
-        guess 
-        (fixed-point-print f next-guess))))
-
-(define (print s)
-  (display s)
+(define (println . strings)
+  (apply print strings)
   (newline))
 
-; TODO fixed-point with average damping
+(define (print . strings) (display (apply string-append strings)))
+
+(define (fixed-point-average-damping f first-guess)
+  (define (internal-impl guess step-counter)      
+    (println (number->string step-counter) ": " (number->string guess))
+    ; average damping
+    (let ((next-guess (average guess (f guess))))
+      (if (close-enough? next-guess guess) 
+          guess 
+          (internal-impl next-guess (+ step-counter 1)))))
+  (internal-impl first-guess 1))
+
+; Exercise 1.37
+(define (cont-frac-iter n d k)
+  (define (internal-impl counter result)
+    (if (= counter 0)
+        result
+        (internal-impl (- counter 1) (/ (n counter) (+ (d counter) result)))))
+  (internal-impl k 0))
+
+(define (cont-frac-recur n d k)
+  (define (internal-impl counter)
+    (if (> counter k)
+        0
+        (/ (n counter) (+ (d counter) (internal-impl (+ counter 1))))))
+  (internal-impl 1))
+
+(define (golden-ratio)
+  (fixed-point-average-damping (lambda (x) (+ 1 (/ 1 x))) 1.0))

@@ -14,16 +14,17 @@
   ((if (> b 0) + -) a b))
 
 ; Exercise 1.7
+(define (improve-sqrt-guess x)
+  (lambda (guess) 
+    (average guess (/ x guess))))
+(define (good-enough-sqrt-guess? x)
+  (lambda (guess)
+    (< (abs (- (square guess) x)) tolerance)))
+; Calculate square root of x
 (define (sqrt-iter current-guess old-guess x)
-  (define (close-enough? current-guess old-guess)
-    (< (abs (- current-guess old-guess)) (/ current-guess 1000)))
-  (define (improve guess x)
-    (average guess (/ x guess)))
-  ; if the two consecutive guesses are really close, we say that
-  ; they approach the correct solution
-  (if (close-enough? current-guess old-guess)
+  (if ((good-enough-sqrt-guess? x) current-guess)
       current-guess
-      (sqrt-iter (improve current-guess x) current-guess x)))
+      (sqrt-iter ((improve-sqrt-guess x) current-guess) current-guess x)))
 
 (define (abs x) (if (< x 0) (- x) x))
 
@@ -265,14 +266,12 @@
       0
       (+ (eval a) (sum (next a) b eval next))))
 
-(define (sum-cubes a b)
+(define (sum-cubes a b) 
   (sum a b cube increase))
 
-(define (cube a)
-  (* a a a))
+(define (cube a) (* a a a))
 
-(define (increase a)
-  (+ a 1))
+(define (increase a) (+ a 1))
 
 ; Exercise 1.30
 (define (sum-iter a b eval next)
@@ -367,8 +366,10 @@
         (fixed-point f next-guess))))
   
 ; Exercise 1.36
+; This solves f(x) = x
 (define (fixed-point f first-guess)
   (define (internal-impl guess step-counter)
+    (if (> step-counter 10000) (error "No converge."))
     (println (number->string step-counter) ": " (number->string guess))
     (let ((next-guess (f guess)))
       (if (close-enough? next-guess guess) 
@@ -382,15 +383,11 @@
 
 (define (print . strings) (display (apply string-append strings)))
 
-(define (fixed-point-average-damping f first-guess)
-  (define (internal-impl guess step-counter)      
-    (println (number->string step-counter) ": " (number->string guess))
-    ; average damping
-    (let ((next-guess (average guess (f guess))))
-      (if (close-enough? next-guess guess) 
-          guess 
-          (internal-impl next-guess (+ step-counter 1)))))
-  (internal-impl first-guess 1))
+(define (average-damp f)
+  (lambda (guess) (average guess (f guess))))
+
+(define (fixed-point-average-damp f first-guess)
+  (fixed-point (average-damp f) first-guess))
 
 ; Exercise 1.37
 (define (cont-frac-iter n d k)
@@ -408,7 +405,7 @@
   (internal-impl 1))
 
 (define (golden-ratio)
-  (fixed-point-average-damping (lambda (x) (+ 1 (/ 1 x))) 1.0))
+  (fixed-point-average-damp (lambda (x) (+ 1 (/ 1 x))) 1.0))
 
 ; Exercise 1.38
 ; approximate the base of the natural algorithm
@@ -425,3 +422,72 @@
   (define (n i) (if (= i 1) x (- (square x))))
   (define (d i) (- (* 2 i) 1))
   (cont-frac-iter n d k))
+
+; Exercise 1.40
+(define dx 0.00001)
+
+(define (deriv g)
+  (lambda (x) (/ (- (g (+ x dx)) (g x)) dx)))
+
+(define (newton-transform g)
+  (lambda (x) (- x (/ (g x) ((deriv g) x)))))
+
+; This solves g(x) = 0
+(define (newtons-method g first-guess)
+  (fixed-point (newton-transform g) first-guess))
+
+(define (cubic a b c)
+  (lambda (x) (+ (cube x) (* a (square x)) (* b x) c)))
+
+; Exercise 1.41
+(define (double-apply f)
+  (lambda (x) 
+    (println "apply")
+    (f (f x))))
+
+; The excution flow of (((double-apply (double-apply double-apply)) increase) 5).
+; (((double-apply (double-apply double-apply)) increase) 5)
+; (((double-apply (lambda (x) (double-apply (double-apply x)))) increase) 5)
+; (((lambda (y) ((lambda (x) (double-apply (double-apply x))) ((lambda (x) (double-apply (double-apply x))) y))) increase) 5)
+; (((lambda (x) (double-apply (double-apply x))) ((lambda (x) (double-apply (double-apply x))) increase)) 5)
+; (((lambda (x) (double-apply (double-apply x))) (double-apply (double-apply increase))) 5)
+; ((double-apply (double-apply (double-apply (double-apply increase)))) 5) ; the function increase will be applied for 16 times
+
+; Exercise 1.42
+(define (compose f g)
+  (lambda (x) (f (g x))))
+
+; Exercise 1.43
+(define (repeated f n)
+  (if (= n 1)
+      (lambda (x) (f x))
+      (compose f (repeated f (- n 1)))))
+
+; Exercise 1.44
+(define (smooth f)
+  (lambda (x) (/ (+ (f (- x dx)) (f x) (f (+ x dx))) 3)))
+
+(define (repeated-smooth f n)
+  (lambda (x) (repeated (smooth f) n)))
+
+; Exercise 1.45
+(define (fixed-point-repeated-average-damp f n first-guess)
+  (fixed-point (repeated (average-damp f) n) first-guess))
+
+(define (n-root n x average-times)
+  (fixed-point-repeated-average-damp (lambda (y) (/ x (expt y (- n 1)))) average-times 1.0))
+
+; Exercise 1.46
+(define (iterative-improve good-enough? improve)
+  (lambda (guess) 
+    (if (good-enough? guess) guess ((iterative-improve good-enough? improve) (improve guess)))))
+
+(define (sqrt-iter-improve x)
+  ((iterative-improve (good-enough-sqrt-guess? x) (improve-sqrt-guess x)) 1.0))
+
+(define (fixed-point-iter-improve f first-guess)
+  (define (good-enough? guess)
+    (close-enough? guess (f guess)))
+  (define (improve guess)
+    (f guess))
+  ((iterative-improve good-enough? improve) first-guess))

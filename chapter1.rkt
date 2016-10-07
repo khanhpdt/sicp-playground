@@ -279,7 +279,7 @@
     (if (> a b)
         accumulator
         (internal-sum-iter (next a) (+ accumulator (eval a)))))
-    (internal-sum-iter a 0))
+  (internal-sum-iter a 0))
 
 ; Exercise 1.31
 (define (product a b eval next)
@@ -364,7 +364,7 @@
     (if (close-enough? next-guess guess) 
         guess 
         (fixed-point f next-guess))))
-  
+
 ; Exercise 1.36
 ; This solves f(x) = x
 (define (fixed-point f first-guess)
@@ -375,7 +375,7 @@
       (if (close-enough? next-guess guess) 
           guess 
           (internal-impl next-guess (+ step-counter 1)))))
-    (internal-impl first-guess 1))
+  (internal-impl first-guess 1))
 
 (define (println . strings)
   (apply print strings)

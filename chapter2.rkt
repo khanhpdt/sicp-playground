@@ -104,4 +104,124 @@
 (define (add m n)
   (lambda (f) (lambda (x) ((m f) ((n f) x))))) ; (n f) means applying f for n times
 
+;; Exercise 2.7
+(define (make-interval x y) (cons x y))
+(define (lower-bound x) (car x))
+(define (upper-bound x) (cdr x))
 
+;; Exercise 2.8
+(define (sub-interval x y)
+  (let ((p1 (- (lower-bound x) (lower-bound y)))
+        (p2 (- (lower-bound x) (upper-bound y)))
+        (p3 (- (upper-bound x) (lower-bound y)))
+        (p4 (- (upper-bound x) (upper-bound y))))
+    (make-interval (min p1 p2 p3 p4)
+                   (max p1 p2 p3 p4))))
+
+(define (print-interval x)
+  (display "[")
+  (display (lower-bound x))
+  (display ",")
+  (display (upper-bound x))
+  (display "]"))
+    
+;; Exercise 2.9
+(define (add-interval x y)
+  (make-interval (+ (lower-bound x) (lower-bound y))
+                 (+ (upper-bound x) (upper-bound y))))
+
+(define (mul-interval x y)
+  (let ((p1 (* (lower-bound x) (lower-bound y)))
+        (p2 (* (lower-bound x) (upper-bound y)))
+        (p3 (* (upper-bound x) (lower-bound y)))
+        (p4 (* (upper-bound x) (upper-bound y))))
+    (make-interval (min p1 p2 p3 p4)
+                   (max p1 p2 p3 p4))))
+
+(define (div-interval x y)
+  (mul-interval
+   x
+   (make-interval (/ 1.0 (upper-bound y))
+                  (/ 1.0 (lower-bound y)))))
+
+(define (width x)
+  (/ (- (upper-bound x) (lower-bound x)) 2))
+
+;; Exercise 2.10
+(define (span-zero? x)
+  (and (<= (lower-bound x) 0) (>= (upper-bound x) 0)))
+
+(define (zero-checked-div-interval x y)
+  (if (span-zero? y)
+      (error "Divides span-zero interval!")
+      (div-interval x y)))
+
+;; Exercise 2.11
+(define (mul-interval-2 x y)
+  (let ((lx (lower-bound x))
+        (ux (upper-bound x))
+        (ly (lower-bound y))
+        (uy (upper-bound y)))
+    (cond ((and (< ux 0) (< uy 0)) (make-interval (* ux uy)
+                                                  (* lx ly)))
+          ((and (< ux 0) (>= uy 0) (< ly 0)) (make-interval (* lx uy)
+                                                            (* lx ly)))
+          ((and (< ux 0) (>= uy 0) (>= ly 0)) (make-interval (* lx uy)
+                                                             (* ux ly)))
+          ((and (>= ux 0) (< lx 0) (< uy 0)) (make-interval (* ux ly)
+                                                            (* lx ly)))
+          ((and (>= ux 0) (< lx 0) (>= uy 0) (< ly 0)) (make-interval (min (* lx uy) (* ux ly))
+                                                                      (max (* lx ly) (* ux uy))))
+          ((and (>= ux 0) (< lx 0) (>= uy 0) (>= ly 0)) (make-interval (* lx uy)
+                                                                       (* ux uy)))
+          ((and (>= ux 0) (>= lx 0) (< uy 0)) (make-interval (* ux ly)
+                                                             (* lx uy)))
+          ((and (>= ux 0) (>= lx 0) (>= uy 0) (< ly 0)) (make-interval (* ux ly)
+                                                                       (* ux uy)))
+          ((and (>= ux 0) (>= lx 0) (>= uy 0) (>= ly 0)) (make-interval (* lx ly)
+                                                                        (* ux uy))))))
+
+;; Exercise 2.12
+(define (make-center-percent c p)
+  (let ((cp (* c (/ p 100.0))))
+    (make-interval (- c cp)
+                   (+ c cp))))
+
+(define (center x)
+  (/ (+ (lower-bound x) (upper-bound x)) 2))
+
+(define (percentage x)
+  (* (/ (width x) (center x)) 100.0))
+
+;; Exercise 2.13
+(define (percentage-mul-interval x y)
+  (let ((p1 (percentage x))
+        (p2 (percentage y)))
+    (/ (+ p1 p2) (+ (* (/ p1 100) (/ p2 100)) 1))))
+
+;; Exercise 2.14
+(define (par1 r1 r2)
+  (div-interval (mul-interval r1 r2)
+                (add-interval r1 r2)))
+
+(define (par2 r1 r2)
+  (let ((one (make-interval 1 1)))
+    (div-interval one
+                  (add-interval (div-interval one r1)
+                                (div-interval one r2)))))
+
+(define (make-center-width c w)
+  (make-interval (- c w) (+ c w)))
+
+;; Try these:
+;; (div-interval (make-center-width 100 0.1) (make-center-width 100 50))
+;; -> (mcons 0.666 2.002)
+;; (div-interval (make-center-width 100 10) (make-center-width 100 50))
+;; -> (mcons 0.6000000000000001 2.2)
+;; (div-interval (make-center-width 100 20) (make-center-width 100 50))
+;; -> (mcons 0.5333333333333333 2.4)
+;; We can see that as the width of the dividend increases, the result becomes less accurate.
+
+;; Exercise 2.15
+;; par2 is better than par1 because all of the dividends in par2 has width of 0, whereas the dividend in
+;; par1 can have a big width.

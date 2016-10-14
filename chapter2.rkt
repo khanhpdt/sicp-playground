@@ -225,3 +225,50 @@
 ;; Exercise 2.15
 ;; par2 is better than par1 because all of the dividends in par2 has width of 0, whereas the dividend in
 ;; par1 can have a big width.
+
+;; Exercise 2.17
+(define (last-pair l)
+  (cond ((null? l) nil)
+        ((null? (cdr l)) (cons (car l) nil))
+        (else (last-pair (cdr l)))))
+
+;; Exercise 2.18
+(define (append l1 l2)
+  (if (null? l1)
+      l2
+      (cons (car l1) (append (cdr l1) l2))))
+
+(define (reverse l) 
+  (if (null? l)
+      nil
+      (append (reverse (cdr l)) (cons (car l) nil))))
+
+;; Exercise 2.19
+(define (no-more? l)
+  (null? l))
+
+(define (except-first-denomination coin-values)
+  (cdr coin-values))
+
+(define (first-denomination coin-values)
+  (car coin-values))
+
+(define (cc amount coin-values)
+  (cond ((= amount 0) 1)
+        ((or (< amount 0) (no-more? coin-values)) 0)
+        (else
+         (+ (cc amount (except-first-denomination coin-values))
+            (cc (- amount (first-denomination coin-values)) coin-values)))))
+
+;; The order of coin-values does not affect the result of cc, because cc only cares about the value
+;; of the coins, not their orders in the coin-values list.
+
+;; Exercise 2.20
+(define (same-parity . numbers)
+  (define (same-parity-with n others)
+    (cond ((null? others) nil)
+          ((= (remainder n 2) (remainder (car others) 2)) (cons (car others)
+                                                                (same-parity-with n (cdr others))))
+          (else (same-parity-with n (cdr others)))))
+  (same-parity-with (car numbers) (cdr numbers)))
+        

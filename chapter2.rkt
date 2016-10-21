@@ -233,15 +233,15 @@
         (else (last-pair (cdr l)))))
 
 ;; Exercise 2.18
-(define (append l1 l2)
+(define (append-list l1 l2)
   (if (null? l1)
       l2
-      (cons (car l1) (append (cdr l1) l2))))
+      (cons (car l1) (append-list (cdr l1) l2))))
 
 (define (reverse l) 
   (if (null? l)
       nil
-      (append (reverse (cdr l)) (cons (car l) nil))))
+      (append-list (reverse (cdr l)) (cons (car l) nil))))
 
 ;; Exercise 2.19
 (define (no-more? l)
@@ -272,3 +272,99 @@
           (else (same-parity-with n (cdr others)))))
   (same-parity-with (car numbers) (cdr numbers)))
         
+;; Exercise 2.21
+(define (map f l)
+  (if (null? l)
+      nil
+      (cons (f (car l)) (map f (cdr l)))))
+
+(define (square x)
+  (* x x))
+
+(define (square-list l)
+  (map square l))
+
+(define (square-list-2 l)
+  (if (null? l)
+      nil
+      (cons (square (car l)) (square-list-2 (cdr l)))))
+
+;; Exercise 2.22
+
+(define (square-list-3 l)
+  (define (iter l answer)
+    (if (null? l)
+        answer
+        (iter (cdr l)
+              (cons (square (car l)) answer))))
+  (iter l nil))
+;; This algorithm square-list-3 produces a list in reverse order
+;; because (cons (square (car l)) answer) appends the tail of the
+;; given list to the head of the result.
+
+(define (square-list-4 l)
+  (define (iter l answer)
+    (if (null? l)
+        answer
+        (iter (cdr l)
+              (cons answer (square (car l))))))
+  (iter l nil))
+;; This algorithm square-list-4 doesn't work because (cons answer (square (car l))
+;; creates a pair whose first item is a pair and second item is a number, and
+;; this format is not a list format. For example, (square-list-4 (list 1 2 3))
+;; produces (mcons (mcons (mcons '() 1) 4) 9).
+
+;; Exercise 2.23
+(define (for-each proc l)
+  (if (null? l)
+      true ;; dummy result because the result of for-each will not be used
+      ((lambda ()
+        (proc (car l))
+        (for-each proc (cdr l))))))
+
+;; Exercise 2.24
+(define exercise-2-24 (list 1 (list 2 (list 3 4))))
+;; -> (mcons 1 (mcons (mcons 2 (mcons (mcons 3 (mcons 4 '())) '())) '()))
+;; It seems that "list" always transforms its second argument to a pair by
+;; appending nil to the argument.
+
+;; Exercise 2.25
+(define (exercise-2-25)
+  (define (car-cdr l)
+    (car (cdr l)))
+  (let ((l1 (list 1 3 (list 5 7) 9))
+        (l2 (list (list 7)))
+        (l3 (list 1 (list 2 (list 3 (list 4 (list 5 (list 6 7))))))))
+    (newline)
+    (display (car (cdr (car (cdr (cdr l1))))))
+    (newline)
+    (display (car (car l2)))
+    (newline)
+    (display (car-cdr (car-cdr (car-cdr (car-cdr (car-cdr (car-cdr l3)))))))))
+
+;; Exercise 2.26
+;; > (define x (list 1 2 3))
+;; > (define y (list 4 5 6))
+;; > (append-list x y)
+;; (mcons 1 (mcons 2 (mcons 3 (mcons 4 (mcons 5 (mcons 6 '()))))))
+;; > (cons x y)
+;; (mcons (mcons 1 (mcons 2 (mcons 3 '()))) (mcons 4 (mcons 5 (mcons 6 '()))))
+;; > (list x y)
+;; (mcons (mcons 1 (mcons 2 (mcons 3 '()))) (mcons (mcons 4 (mcons 5 (mcons 6 '()))) '()))
+
+;; Exercise 2.27
+(define (deep-reverse l)
+  (cond ((null? l) nil)
+        ((not (pair? l)) l)
+        (else (append-list (deep-reverse (cdr l)) (cons (deep-reverse (car l)) nil)))))
+
+;; Exercise 2.28
+(define (append x l)
+  (cond ((null? x) l)
+        ((not (pair? x)) (cons x l))
+        (else (append-list x l))))
+
+(define (fringe tree)
+  (cond ((null? tree) nil)
+        ((not (pair? tree)) tree)
+        (else (append (fringe (car tree)) (fringe (cdr tree))))))

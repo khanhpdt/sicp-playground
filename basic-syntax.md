@@ -23,6 +23,7 @@
 - Conditional expressions
   
   ```
+  ;; the predicates are checked in the order they are defined.
   (cond (<pred 1> <exp 1>)
 		(<pred 2> <exp 2>)
 		...
@@ -47,7 +48,16 @@
 - Lambda expression
   
   ```
-  (lambda (<formal parameters>) <body>)
+  (lambda (<formal parameters>) 
+	  <body>)
+  ```
+  
+- To apply lambda expression without arguments
+
+  ```
+  ;; wrap the lambda by parentheses
+  ((lambda ()
+	  <body>))
   ```
 
 - Binding expressions

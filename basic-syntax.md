@@ -16,7 +16,7 @@
 - Varargs (or variadic, or dotted tail) functions
   
   ```
-  (defind (<name> <normal parameters> . <trailling parameter>) ;; trailing parameter can accept a list of arguments
+  (define (<name> <normal parameters> . <trailling parameter>) ;; trailing parameter can accept a list of arguments
 	  <body>)
   ```
 
@@ -69,6 +69,8 @@
 		(<var n> <exp n>))
 	<body>)
   ```
+  
+- 
 
 # Native procedures
 

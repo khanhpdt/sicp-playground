@@ -6,4 +6,4 @@
   (if (null? sequence)
       initial
       (op (car sequence)
-	  (accumulate op initial (cdr sequence)))))
+	        (accumulate op initial (cdr sequence)))))
